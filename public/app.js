@@ -49,17 +49,52 @@ function setStatus(message, isError = false) {
 }
 
 function list(items) {
-  if (!items || !items.length) return "<p>No major items found in the selected filings.</p>";
-  return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+  const cleanItems = (items || []).filter((item) => !isDisplayBoilerplate(item));
+  if (!cleanItems.length) return "<p>No major items found in the selected filings.</p>";
+  return `<ul>${cleanItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
 }
 
 function escapeHtml(value) {
-  return String(value)
+  return decodeHtmlEntities(String(value))
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function decodeHtmlEntities(value) {
+  const namedEntities = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    nbsp: " ",
+    quot: "\""
+  };
+
+  return value
+    .replace(/&#(\d+);/g, (match, code) => {
+      const point = Number(code);
+      return Number.isFinite(point) ? String.fromCodePoint(point) : match;
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (match, code) => {
+      const point = Number.parseInt(code, 16);
+      return Number.isFinite(point) ? String.fromCodePoint(point) : match;
+    })
+    .replace(/&([a-z]+);/gi, (match, name) => namedEntities[name.toLowerCase()] || match);
+}
+
+function isDisplayBoilerplate(value) {
+  const text = decodeHtmlEntities(String(value)).toLowerCase();
+  return [
+    "emerging growth company",
+    "large accelerated filer",
+    "non-accelerated filer",
+    "smaller reporting company",
+    "registrant has elected",
+    "section 13(a) of the exchange act"
+  ].some((pattern) => text.includes(pattern));
 }
 
 function renderBrief(payload) {

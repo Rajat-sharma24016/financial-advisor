@@ -10,7 +10,7 @@ Important: this is an educational research assistant, not a registered financial
 - Pulls latest 8-K, 10-K, and 10-Q filings directly from SEC EDGAR.
 - Opens original filing links for verification.
 - Extracts text from filing HTML/TXT documents server-side.
-- AI research brief when `OPENAI_API_KEY` is configured.
+- AI research brief when `GROQ_API_KEY` or `OPENAI_API_KEY` is configured.
 - Deterministic fallback analysis when no AI key is present.
 - Watchlist stored locally in the browser.
 - Sharable research links with ticker, forms, and question encoded in the URL.
@@ -25,7 +25,7 @@ npm start
 
 Open `http://localhost:8080`.
 
-If deploying without an OpenAI key, the app still works with the rules-based analyst.
+If deploying without an AI key, the app still works with the rules-based analyst.
 
 ## Environment Variables
 
@@ -33,6 +33,8 @@ If deploying without an OpenAI key, the app still works with the rules-based ana
 | --- | --- | --- |
 | `SEC_USER_AGENT` | Yes | SEC-compliant app identity and contact string. |
 | `PORT` | No | Server port. Defaults to `8080`. |
+| `GROQ_API_KEY` | No | Enables Groq-powered research briefs. |
+| `GROQ_MODEL` | No | Groq model name. Defaults to `llama-3.1-8b-instant`. |
 | `OPENAI_API_KEY` | No | Enables LLM-generated research briefs. |
 | `OPENAI_MODEL` | No | Model name. Defaults to `gpt-4.1-mini`. |
 
@@ -44,7 +46,7 @@ If deploying without an OpenAI key, the app still works with the rules-based ana
 2. Create a new Render Web Service.
 3. Build command: leave blank or use `npm install`.
 4. Start command: `npm start`.
-5. Add `SEC_USER_AGENT` and optional `OPENAI_API_KEY`.
+5. Add `SEC_USER_AGENT` and optional `GROQ_API_KEY` or `OPENAI_API_KEY`.
 
 ### Railway
 

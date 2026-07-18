@@ -104,13 +104,32 @@ export async function getFilingText(filing) {
 }
 
 export function normalizeFilingText(raw) {
-  return String(raw || "")
+  return decodeHtmlEntities(String(raw || ""))
     .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<style[\s\S]*?<\/style>/gi, " ")
     .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&#160;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function decodeHtmlEntities(value) {
+  const namedEntities = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    nbsp: " ",
+    quot: "\""
+  };
+
+  return value
+    .replace(/&#(\d+);/g, (_, code) => {
+      const point = Number(code);
+      return Number.isFinite(point) ? String.fromCodePoint(point) : _;
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => {
+      const point = Number.parseInt(code, 16);
+      return Number.isFinite(point) ? String.fromCodePoint(point) : _;
+    })
+    .replace(/&([a-z]+);/gi, (match, name) => namedEntities[name.toLowerCase()] || match);
 }
