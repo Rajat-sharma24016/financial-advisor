@@ -52,6 +52,7 @@ async function handleApi(req, res) {
       groqConfigured: Boolean(config.groqApiKey),
       openAiConfigured: Boolean(config.openAiApiKey),
       groqModel: config.groqModel,
+      groqCooldownSeconds: config.groqCooldownSeconds,
       openAiModel: config.openAiModel
     });
   }
@@ -90,6 +91,7 @@ async function handleApi(req, res) {
       company,
       filings: selected,
       analysis,
+      cooldownSeconds: config.groqApiKey ? config.groqCooldownSeconds : 0,
       generatedAt: new Date().toISOString(),
       disclaimer:
         "Educational research only. Not personalized investment, tax, legal, or fiduciary advice."
@@ -113,7 +115,8 @@ async function serveStatic(req, res) {
   try {
     const file = await readFile(safePath);
     res.writeHead(200, {
-      "Content-Type": mimeTypes[extname(safePath)] || "application/octet-stream"
+      "Content-Type": mimeTypes[extname(safePath)] || "application/octet-stream",
+      "Cache-Control": "no-cache"
     });
     res.end(file);
   } catch {

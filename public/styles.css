@@ -209,6 +209,11 @@ button {
   background: var(--accent-strong);
 }
 
+.primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
 .ghost {
   padding: 7px 10px;
   color: var(--accent);

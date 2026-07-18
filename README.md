@@ -35,6 +35,7 @@ If deploying without an AI key, the app still works with the rules-based analyst
 | `PORT` | No | Server port. Defaults to `8080`. |
 | `GROQ_API_KEY` | No | Enables Groq-powered research briefs. |
 | `GROQ_MODEL` | No | Groq model name. Defaults to `llama-3.1-8b-instant`. |
+| `GROQ_COOLDOWN_SECONDS` | No | Button cooldown after each Groq request. Defaults to `30`. |
 | `OPENAI_API_KEY` | No | Enables LLM-generated research briefs. |
 | `OPENAI_MODEL` | No | Model name. Defaults to `gpt-4.1-mini`. |
 

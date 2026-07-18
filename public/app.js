@@ -9,6 +9,9 @@ const watchlistItems = document.querySelector("#watchlistItems");
 const clearWatchlist = document.querySelector("#clearWatchlist");
 const tickerSuggestions = document.querySelector("#tickerSuggestions");
 const companyButtons = document.querySelector("#companyButtons");
+const cooldownStorageKey = "filingAdvisorCooldownUntil";
+let cooldownTimer = null;
+let configuredCooldownSeconds = 30;
 
 const popularCompanies = [
   { ticker: "AAPL", name: "Apple" },
@@ -47,6 +50,48 @@ function getForms() {
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
   statusEl.classList.toggle("warning", isError);
+}
+
+function getCooldownRemainingSeconds() {
+  const until = Number(localStorage.getItem(cooldownStorageKey) || 0);
+  return Math.max(0, Math.ceil((until - Date.now()) / 1000));
+}
+
+function updateCooldownButton() {
+  const remaining = getCooldownRemainingSeconds();
+  if (remaining > 0) {
+    submitButton.disabled = true;
+    submitButton.textContent = `Wait ${remaining}s`;
+    setStatus(`Groq cooldown: try again in ${remaining} second${remaining === 1 ? "" : "s"}.`);
+    return;
+  }
+
+  if (cooldownTimer) {
+    clearInterval(cooldownTimer);
+    cooldownTimer = null;
+  }
+  submitButton.disabled = false;
+  submitButton.textContent = "Analyze filings";
+}
+
+function startCooldown(seconds) {
+  const duration = Number(seconds || 0);
+  if (duration <= 0) return;
+  localStorage.setItem(cooldownStorageKey, String(Date.now() + duration * 1000));
+  if (cooldownTimer) clearInterval(cooldownTimer);
+  cooldownTimer = setInterval(updateCooldownButton, 1000);
+  updateCooldownButton();
+}
+
+async function loadRuntimeSettings() {
+  try {
+    const response = await fetch("/api/health");
+    if (!response.ok) return;
+    const settings = await response.json();
+    configuredCooldownSeconds = Number(settings.groqCooldownSeconds || configuredCooldownSeconds);
+  } catch {
+    configuredCooldownSeconds = 30;
+  }
 }
 
 function list(items) {
@@ -101,25 +146,16 @@ function isDisplayBoilerplate(value) {
 function renderBrief(payload) {
   const parsed = payload.analysis.parsed || {};
   const company = payload.company;
-  const modeLabel = payload.analysis.mode === "ai"
-    ? `${payload.analysis.provider === "groq" ? "Groq" : "AI"} brief`
-    : "Rules-based brief";
-  const warning = payload.analysis.warning && !payload.analysis.warning.includes("No OPENAI_API_KEY")
-    ? `<p class="warning">${escapeHtml(payload.analysis.warning)}</p>`
-    : "";
 
   briefEl.innerHTML = `
     <div>
       <div class="meta">
         <span class="pill">${escapeHtml(company.ticker)}</span>
         <span class="pill">${escapeHtml(company.exchange || "SEC registrant")}</span>
-        <span class="pill">${modeLabel}</span>
         <span class="pill">${new Date(payload.generatedAt).toLocaleString()}</span>
       </div>
       <h2>${escapeHtml(company.name)}</h2>
     </div>
-
-    ${warning}
 
     <section class="stance">
       <strong>Research stance:</strong> ${escapeHtml(parsed.stance || "Needs deeper diligence")}
@@ -232,6 +268,10 @@ shareButton.addEventListener("click", async () => {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (getCooldownRemainingSeconds() > 0) {
+    updateCooldownButton();
+    return;
+  }
   const ticker = tickerEl.value.trim().toUpperCase();
   if (!ticker) return;
 
@@ -256,13 +296,19 @@ form.addEventListener("submit", async (event) => {
     setStatus("Analysis complete.");
     renderBrief(payload);
     saveWatchlist([ticker, ...getWatchlist()]);
+    startCooldown(payload.cooldownSeconds);
   } catch (error) {
+    const message = String(error.message || "");
+    if (message.includes("Groq") || message.includes("rate limit")) {
+      startCooldown(configuredCooldownSeconds);
+    }
     setStatus(error.message, true);
   } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Analyze filings";
+    updateCooldownButton();
   }
 });
 
+await loadRuntimeSettings();
 renderWatchlist();
 renderPopularCompanies();
+updateCooldownButton();
