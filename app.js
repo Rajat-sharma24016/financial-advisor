@@ -11,6 +11,7 @@ const tickerSuggestions = document.querySelector("#tickerSuggestions");
 const companyButtons = document.querySelector("#companyButtons");
 const cooldownStorageKey = "filingAdvisorCooldownUntil";
 let cooldownTimer = null;
+let configuredCooldownSeconds = 30;
 
 const popularCompanies = [
   { ticker: "AAPL", name: "Apple" },
@@ -61,7 +62,7 @@ function updateCooldownButton() {
   if (remaining > 0) {
     submitButton.disabled = true;
     submitButton.textContent = `Wait ${remaining}s`;
-    setStatus(`Groq cooldown: try again in ${remaining} second${remaining === 1 ? "" : "s"}.`);
+    setStatus(`Cooldown: try again in ${remaining} second${remaining === 1 ? "" : "s"}.`);
     return;
   }
 
@@ -80,6 +81,17 @@ function startCooldown(seconds) {
   if (cooldownTimer) clearInterval(cooldownTimer);
   cooldownTimer = setInterval(updateCooldownButton, 1000);
   updateCooldownButton();
+}
+
+async function loadRuntimeSettings() {
+  try {
+    const response = await fetch("/api/health");
+    if (!response.ok) return;
+    const settings = await response.json();
+    configuredCooldownSeconds = Number(settings.groqCooldownSeconds || configuredCooldownSeconds);
+  } catch {
+    configuredCooldownSeconds = 30;
+  }
 }
 
 function list(items) {
@@ -134,9 +146,6 @@ function isDisplayBoilerplate(value) {
 function renderBrief(payload) {
   const parsed = payload.analysis.parsed || {};
   const company = payload.company;
-  const warning = payload.analysis.warning && !payload.analysis.warning.includes("No OPENAI_API_KEY")
-    ? `<p class="warning">${escapeHtml(payload.analysis.warning)}</p>`
-    : "";
 
   briefEl.innerHTML = `
     <div>
@@ -147,8 +156,6 @@ function renderBrief(payload) {
       </div>
       <h2>${escapeHtml(company.name)}</h2>
     </div>
-
-    ${warning}
 
     <section class="stance">
       <strong>Research stance:</strong> ${escapeHtml(parsed.stance || "Needs deeper diligence")}
@@ -291,12 +298,17 @@ form.addEventListener("submit", async (event) => {
     saveWatchlist([ticker, ...getWatchlist()]);
     startCooldown(payload.cooldownSeconds);
   } catch (error) {
+    const message = String(error.message || "");
+    if (message.includes("Groq") || message.includes("rate limit")) {
+      startCooldown(configuredCooldownSeconds);
+    }
     setStatus(error.message, true);
   } finally {
     updateCooldownButton();
   }
 });
 
+await loadRuntimeSettings();
 renderWatchlist();
 renderPopularCompanies();
 updateCooldownButton();
