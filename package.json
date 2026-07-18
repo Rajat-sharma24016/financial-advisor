@@ -1,0 +1,22 @@
+{
+  "name": "filing-advisor-agent",
+  "version": "1.0.0",
+  "description": "A publishable SEC filings research agent that analyzes 8-K, 10-K, and 10-Q reports.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "keywords": [
+    "sec",
+    "edgar",
+    "ai-agent",
+    "finance",
+    "filings"
+  ],
+  "license": "MIT"
+}
