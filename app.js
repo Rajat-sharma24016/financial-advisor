@@ -49,8 +49,9 @@ function setStatus(message, isError = false) {
 }
 
 function list(items) {
-  if (!items || !items.length) return "<p>No major items found in the selected filings.</p>";
-  return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+  const cleanItems = (items || []).filter((item) => !isDisplayBoilerplate(item));
+  if (!cleanItems.length) return "<p>No major items found in the selected filings.</p>";
+  return `<ul>${cleanItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
 }
 
 function escapeHtml(value) {
@@ -84,10 +85,27 @@ function decodeHtmlEntities(value) {
     .replace(/&([a-z]+);/gi, (match, name) => namedEntities[name.toLowerCase()] || match);
 }
 
+function isDisplayBoilerplate(value) {
+  const text = decodeHtmlEntities(String(value)).toLowerCase();
+  return [
+    "emerging growth company",
+    "large accelerated filer",
+    "non-accelerated filer",
+    "smaller reporting company",
+    "registrant has elected",
+    "section 13(a) of the exchange act"
+  ].some((pattern) => text.includes(pattern));
+}
+
 function renderBrief(payload) {
   const parsed = payload.analysis.parsed || {};
   const company = payload.company;
-  const modeLabel = payload.analysis.mode === "ai" ? "AI brief" : "Rules-based brief";
+  const modeLabel = payload.analysis.mode === "ai"
+    ? `${payload.analysis.provider === "groq" ? "Groq" : "AI"} brief`
+    : "Rules-based brief";
+  const warning = payload.analysis.warning && !payload.analysis.warning.includes("No OPENAI_API_KEY")
+    ? `<p class="warning">${escapeHtml(payload.analysis.warning)}</p>`
+    : "";
 
   briefEl.innerHTML = `
     <div>
@@ -99,6 +117,8 @@ function renderBrief(payload) {
       </div>
       <h2>${escapeHtml(company.name)}</h2>
     </div>
+
+    ${warning}
 
     <section class="stance">
       <strong>Research stance:</strong> ${escapeHtml(parsed.stance || "Needs deeper diligence")}
