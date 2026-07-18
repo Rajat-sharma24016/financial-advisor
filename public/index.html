@@ -22,8 +22,19 @@
         <form id="advisorForm">
           <label>
             Ticker
-            <input id="ticker" name="ticker" autocomplete="off" placeholder="AAPL" required />
+            <input id="ticker" name="ticker" autocomplete="off" list="tickerSuggestions" placeholder="AAPL" required />
           </label>
+          <p class="helperText">
+            A ticker is a short stock-market code for a company. Example: AAPL means Apple, TSLA means Tesla.
+          </p>
+          <datalist id="tickerSuggestions"></datalist>
+
+          <section class="companyPicker" aria-label="Popular companies">
+            <div class="sectionTitle compact">
+              <h2>Popular companies</h2>
+            </div>
+            <div id="companyButtons" class="companyButtons"></div>
+          </section>
 
           <div class="formGrid" aria-label="Filing types">
             <label class="check"><input type="checkbox" name="forms" value="10-K" checked /> 10-K</label>

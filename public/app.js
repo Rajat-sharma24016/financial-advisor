@@ -6,6 +6,26 @@ const questionEl = document.querySelector("#question");
 const shareButton = document.querySelector("#shareButton");
 const watchlistItems = document.querySelector("#watchlistItems");
 const clearWatchlist = document.querySelector("#clearWatchlist");
+const tickerSuggestions = document.querySelector("#tickerSuggestions");
+const companyButtons = document.querySelector("#companyButtons");
+
+const popularCompanies = [
+  { ticker: "AAPL", name: "Apple" },
+  { ticker: "MSFT", name: "Microsoft" },
+  { ticker: "NVDA", name: "Nvidia" },
+  { ticker: "TSLA", name: "Tesla" },
+  { ticker: "AMZN", name: "Amazon" },
+  { ticker: "GOOGL", name: "Alphabet / Google" },
+  { ticker: "META", name: "Meta Platforms" },
+  { ticker: "NFLX", name: "Netflix" },
+  { ticker: "JPM", name: "JPMorgan Chase" },
+  { ticker: "WMT", name: "Walmart" },
+  { ticker: "DIS", name: "Disney" },
+  { ticker: "AMD", name: "Advanced Micro Devices" },
+  { ticker: "INTC", name: "Intel" },
+  { ticker: "ORCL", name: "Oracle" },
+  { ticker: "UBER", name: "Uber" }
+];
 
 const params = new URLSearchParams(window.location.search);
 if (params.get("ticker")) tickerEl.value = params.get("ticker");
@@ -57,8 +77,6 @@ function renderBrief(payload) {
       </div>
       <h2>${escapeHtml(company.name)}</h2>
     </div>
-
-    ${payload.analysis.warning ? `<p class="warning">${escapeHtml(payload.analysis.warning)}</p>` : ""}
 
     <section class="stance">
       <strong>Research stance:</strong> ${escapeHtml(parsed.stance || "Needs deeper diligence")}
@@ -127,6 +145,30 @@ function renderWatchlist() {
     : "<span class='pill'>No tickers yet</span>";
 }
 
+function renderPopularCompanies() {
+  tickerSuggestions.innerHTML = popularCompanies
+    .map((company) => `<option value="${company.ticker}">${escapeHtml(company.name)}</option>`)
+    .join("");
+
+  companyButtons.innerHTML = popularCompanies
+    .map(
+      (company) => `
+        <button type="button" class="companyButton" data-ticker="${company.ticker}">
+          <span class="companyTicker">${company.ticker}</span>
+          <span class="companyName">${escapeHtml(company.name)}</span>
+        </button>
+      `
+    )
+    .join("");
+}
+
+companyButtons.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-ticker]");
+  if (!button) return;
+  tickerEl.value = button.dataset.ticker;
+  tickerEl.focus();
+});
+
 watchlistItems.addEventListener("click", (event) => {
   const button = event.target.closest("[data-ticker]");
   if (!button) return;
@@ -175,3 +217,4 @@ form.addEventListener("submit", async (event) => {
 });
 
 renderWatchlist();
+renderPopularCompanies();

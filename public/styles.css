@@ -74,6 +74,7 @@ h1 {
 
 form,
 .watchlist,
+.companyPicker,
 .status,
 .brief {
   background: var(--panel);
@@ -83,7 +84,7 @@ form,
 
 form {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   padding: 18px;
 }
 
@@ -108,6 +109,63 @@ textarea {
 
 textarea {
   resize: vertical;
+}
+
+.helperText {
+  margin: -6px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.companyPicker {
+  padding: 14px;
+}
+
+.sectionTitle.compact {
+  margin-bottom: 8px;
+}
+
+.companyButtons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  max-height: 238px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.companyButton {
+  display: grid;
+  grid-template-columns: 66px 1fr;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: #fff;
+  text-align: left;
+}
+
+.companyButton:hover {
+  border-color: var(--accent);
+  background: #eef8f5;
+}
+
+.companyTicker {
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.companyName {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .formGrid {
