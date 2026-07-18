@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Filing Advisor Agent</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">SEC EDGAR research assistant</p>
+        <h1>Filing Advisor Agent</h1>
+      </div>
+      <button id="shareButton" class="iconButton" title="Copy share link" aria-label="Copy share link">
+        <span>↗</span>
+      </button>
+    </header>
+
+    <main class="layout">
+      <section class="queryPanel">
+        <form id="advisorForm">
+          <label>
+            Ticker
+            <input id="ticker" name="ticker" autocomplete="off" placeholder="AAPL" required />
+          </label>
+
+          <div class="formGrid" aria-label="Filing types">
+            <label class="check"><input type="checkbox" name="forms" value="10-K" checked /> 10-K</label>
+            <label class="check"><input type="checkbox" name="forms" value="10-Q" checked /> 10-Q</label>
+            <label class="check"><input type="checkbox" name="forms" value="8-K" checked /> 8-K</label>
+          </div>
+
+          <label>
+            Research question
+            <textarea id="question" name="question" rows="4" placeholder="What are the biggest risks and catalysts from the latest filings?"></textarea>
+          </label>
+
+          <button class="primary" type="submit">Analyze filings</button>
+        </form>
+
+        <div class="watchlist">
+          <div class="sectionTitle">
+            <h2>Watchlist</h2>
+            <button id="clearWatchlist" class="ghost" type="button">Clear</button>
+          </div>
+          <div id="watchlistItems" class="watchlistItems"></div>
+        </div>
+      </section>
+
+      <section class="resultPanel">
+        <div id="status" class="status">Enter a ticker to pull recent SEC filings and generate a research brief.</div>
+        <article id="brief" class="brief hidden"></article>
+      </section>
+    </main>
+
+    <footer>
+      Educational research only. Verify source filings. Not personalized investment, legal, tax, or fiduciary advice.
+    </footer>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
