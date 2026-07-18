@@ -78,7 +78,7 @@ function stanceFromSignals(risks, positives) {
 
 export function buildContext(company, filings, filingTexts, question) {
   const joined = filingTexts
-    .map((item) => `FORM ${item.filing.form} FILED ${item.filing.filingDate}\n${item.text.slice(0, 12000)}`)
+    .map((item) => `FORM ${item.filing.form} FILED ${item.filing.filingDate}\n${item.text.slice(0, 4500)}`)
     .join("\n\n---\n\n");
   const analysisText = removeBoilerplate(joined);
   const risks = countTerms(analysisText, RISK_TERMS);
@@ -93,7 +93,7 @@ export function buildContext(company, filings, filingTexts, question) {
     riskSentences: sentenceMatches(analysisText, RISK_TERMS),
     positiveSentences: sentenceMatches(analysisText, POSITIVE_TERMS, 8, RISK_TERMS),
     stance: stanceFromSignals(risks, positives),
-    excerpt: analysisText.slice(0, 28000)
+    excerpt: analysisText.slice(0, 11000)
   };
 }
 
@@ -104,6 +104,7 @@ export async function analyzeFilings(context) {
     } catch (error) {
       return {
         mode: "fallback",
+        provider: "groq",
         warning: `Groq provider failed, so the rules-based analyst was used: ${error.message}`,
         ...rulesBasedAnalysis(context)
       };
@@ -116,6 +117,7 @@ export async function analyzeFilings(context) {
     } catch (error) {
       return {
         mode: "fallback",
+        provider: "openai",
         warning: `AI provider failed, so the rules-based analyst was used: ${error.message}`,
         ...rulesBasedAnalysis(context)
       };
@@ -124,6 +126,7 @@ export async function analyzeFilings(context) {
 
   return {
     mode: "fallback",
+    provider: "rules",
     warning: "No OPENAI_API_KEY configured, so this is a rules-based research brief.",
     ...rulesBasedAnalysis(context)
   };
@@ -171,6 +174,9 @@ async function analyzeWithGroq(context) {
 
   if (!response.ok) {
     const body = await response.text();
+    if (response.status === 413 || body.includes("rate_limit_exceeded")) {
+      throw new Error("Groq rate limit was reached. Wait a minute, then try again with fewer filing types selected.");
+    }
     throw new Error(`Groq request failed (${response.status}): ${body.slice(0, 200)}`);
   }
 
@@ -179,6 +185,7 @@ async function analyzeWithGroq(context) {
 
   return {
     mode: "ai",
+    provider: "groq",
     raw: text,
     parsed: parseJsonMaybe(text)
   };
@@ -215,6 +222,7 @@ async function analyzeWithOpenAI(context) {
 
   return {
     mode: "ai",
+    provider: "openai",
     raw: text,
     parsed: parseJsonMaybe(text)
   };

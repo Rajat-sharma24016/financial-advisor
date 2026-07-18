@@ -3,6 +3,7 @@ const statusEl = document.querySelector("#status");
 const briefEl = document.querySelector("#brief");
 const tickerEl = document.querySelector("#ticker");
 const questionEl = document.querySelector("#question");
+const submitButton = form.querySelector("button[type=submit]");
 const shareButton = document.querySelector("#shareButton");
 const watchlistItems = document.querySelector("#watchlistItems");
 const clearWatchlist = document.querySelector("#clearWatchlist");
@@ -100,7 +101,12 @@ function isDisplayBoilerplate(value) {
 function renderBrief(payload) {
   const parsed = payload.analysis.parsed || {};
   const company = payload.company;
-  const modeLabel = payload.analysis.mode === "ai" ? "AI brief" : "Rules-based brief";
+  const modeLabel = payload.analysis.mode === "ai"
+    ? `${payload.analysis.provider === "groq" ? "Groq" : "AI"} brief`
+    : "Rules-based brief";
+  const warning = payload.analysis.warning && !payload.analysis.warning.includes("No OPENAI_API_KEY")
+    ? `<p class="warning">${escapeHtml(payload.analysis.warning)}</p>`
+    : "";
 
   briefEl.innerHTML = `
     <div>
@@ -112,6 +118,8 @@ function renderBrief(payload) {
       </div>
       <h2>${escapeHtml(company.name)}</h2>
     </div>
+
+    ${warning}
 
     <section class="stance">
       <strong>Research stance:</strong> ${escapeHtml(parsed.stance || "Needs deeper diligence")}
@@ -228,6 +236,8 @@ form.addEventListener("submit", async (event) => {
   if (!ticker) return;
 
   briefEl.classList.add("hidden");
+  submitButton.disabled = true;
+  submitButton.textContent = "Analyzing...";
   setStatus(`Pulling SEC filings for ${ticker}...`);
 
   try {
@@ -248,6 +258,9 @@ form.addEventListener("submit", async (event) => {
     saveWatchlist([ticker, ...getWatchlist()]);
   } catch (error) {
     setStatus(error.message, true);
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Analyze filings";
   }
 });
 

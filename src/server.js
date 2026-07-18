@@ -76,7 +76,7 @@ async function handleApi(req, res) {
       return json(res, 404, { error: "No matching recent filings found." });
     }
 
-    const selected = filings.slice(0, 6);
+    const selected = filings.slice(0, 3);
     const filingTexts = await Promise.all(
       selected.map(async (filing) => ({
         filing,
