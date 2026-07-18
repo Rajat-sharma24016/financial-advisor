@@ -52,6 +52,7 @@ async function handleApi(req, res) {
       groqConfigured: Boolean(config.groqApiKey),
       openAiConfigured: Boolean(config.openAiApiKey),
       groqModel: config.groqModel,
+      groqCooldownSeconds: config.groqCooldownSeconds,
       openAiModel: config.openAiModel
     });
   }
@@ -76,7 +77,7 @@ async function handleApi(req, res) {
       return json(res, 404, { error: "No matching recent filings found." });
     }
 
-    const selected = filings.slice(0, 6);
+    const selected = filings.slice(0, 3);
     const filingTexts = await Promise.all(
       selected.map(async (filing) => ({
         filing,
@@ -90,6 +91,7 @@ async function handleApi(req, res) {
       company,
       filings: selected,
       analysis,
+      cooldownSeconds: config.groqApiKey ? config.groqCooldownSeconds : 0,
       generatedAt: new Date().toISOString(),
       disclaimer:
         "Educational research only. Not personalized investment, tax, legal, or fiduciary advice."
