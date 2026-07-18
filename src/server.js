@@ -45,6 +45,17 @@ function readBody(req) {
 }
 
 async function handleApi(req, res) {
+  if (req.method === "GET" && req.url === "/api/health") {
+    return json(res, 200, {
+      ok: true,
+      aiProvider: config.groqApiKey ? "groq" : config.openAiApiKey ? "openai" : "rules",
+      groqConfigured: Boolean(config.groqApiKey),
+      openAiConfigured: Boolean(config.openAiApiKey),
+      groqModel: config.groqModel,
+      openAiModel: config.openAiModel
+    });
+  }
+
   if (req.method === "GET" && req.url.startsWith("/api/company")) {
     const url = new URL(req.url, "http://localhost");
     const company = await findCompanyByTicker(url.searchParams.get("ticker"));
