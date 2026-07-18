@@ -62,7 +62,7 @@ function updateCooldownButton() {
   if (remaining > 0) {
     submitButton.disabled = true;
     submitButton.textContent = `Wait ${remaining}s`;
-    setStatus(`Groq cooldown: try again in ${remaining} second${remaining === 1 ? "" : "s"}.`);
+    setStatus(`Cooldown: try again in ${remaining} second${remaining === 1 ? "" : "s"}.`);
     return;
   }
 

@@ -105,7 +105,7 @@ export async function analyzeFilings(context) {
       return {
         mode: "fallback",
         provider: "groq",
-        warning: `Groq provider failed, so the rules-based analyst was used: ${error.message}`,
+        warning: `AI provider is cooling down, so the basic filing scan was used: ${error.message}`,
         ...rulesBasedAnalysis(context)
       };
     }
@@ -175,9 +175,9 @@ async function analyzeWithGroq(context) {
   if (!response.ok) {
     const body = await response.text();
     if (response.status === 413 || body.includes("rate_limit_exceeded")) {
-      throw new Error("Groq rate limit was reached. Wait a minute, then try again with fewer filing types selected.");
+      throw new Error("Rate limit was reached. Wait a minute, then try again with fewer filing types selected.");
     }
-    throw new Error(`Groq request failed (${response.status}): ${body.slice(0, 200)}`);
+    throw new Error(`AI request failed (${response.status}): ${body.slice(0, 200)}`);
   }
 
   const payload = await response.json();
